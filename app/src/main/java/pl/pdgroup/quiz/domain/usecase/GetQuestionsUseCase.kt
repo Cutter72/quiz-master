@@ -1,0 +1,23 @@
+package pl.pdgroup.quiz.domain.usecase
+
+import pl.pdgroup.quiz.domain.model.Difficulty
+import pl.pdgroup.quiz.domain.model.Question
+import pl.pdgroup.quiz.domain.repository.QuizRepository
+import javax.inject.Inject
+
+class GetQuestionsUseCase @Inject constructor(
+    private val repository: QuizRepository
+) {
+    suspend operator fun invoke(category: String, difficulty: Difficulty): Result<List<Question>> {
+        return try {
+            val questions = repository.getQuestions(category, difficulty)
+            if (questions.size < 3) {
+                Result.failure(Exception("Not enough questions available for $category - ${difficulty.name}. Only ${questions.size} question(s) found. Please try another combination."))
+            } else {
+                Result.success(questions.shuffled().take(5))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
