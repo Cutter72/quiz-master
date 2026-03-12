@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import pl.pdgroup.quiz.presentation.screen.home.HomeScreen
 import pl.pdgroup.quiz.presentation.screen.quiz.QuizScreen
+import pl.pdgroup.quiz.presentation.screen.result.ResultScreen
+import pl.pdgroup.quiz.presentation.screen.scoreboard.ScoreboardScreen
 import pl.pdgroup.quiz.presentation.screen.selection.SelectionScreen
 
 @Composable
@@ -62,10 +64,28 @@ fun AppNavigation(
                 navArgument("total") { type = NavType.IntType }
             )
         ) {
-            // TODO: ResultScreen
+            ResultScreen(
+                onNavigateHome = {
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                },
+                onNavigateSelection = {
+                    navController.navigate("selection") {
+                        popUpTo("home") { inclusive = false }
+                    }
+                },
+                onNavigateScoreboard = {
+                    navController.navigate("scoreboard") {
+                        popUpTo("home") { inclusive = false }
+                    }
+                }
+            )
         }
         composable("scoreboard") {
-            // TODO: ScoreboardScreen
+            ScoreboardScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }
