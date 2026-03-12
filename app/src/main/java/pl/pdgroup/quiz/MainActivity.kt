@@ -2,12 +2,16 @@ package pl.pdgroup.quiz
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -23,9 +27,32 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             val themeState by viewModel.themeState.collectAsState()
+            val isDark = themeState.isDarkMode
+            
+            DisposableEffect(isDark) {
+                enableEdgeToEdge(
+                    statusBarStyle = if (isDark) {
+                        SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+                    } else {
+                        SystemBarStyle.light(
+                            android.graphics.Color.TRANSPARENT,
+                            android.graphics.Color.TRANSPARENT
+                        )
+                    },
+                    navigationBarStyle = if (isDark) {
+                        SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+                    } else {
+                        SystemBarStyle.light(
+                            android.graphics.Color.TRANSPARENT,
+                            android.graphics.Color.TRANSPARENT
+                        )
+                    }
+                )
+                onDispose {}
+            }
+
             val navController = rememberNavController()
 
             QuizTheme(
@@ -36,13 +63,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(
-                        navController = navController,
-                        isDarkMode = themeState.isDarkMode,
-                        isHighContrast = themeState.isHighContrast,
-                        onToggleTheme = { viewModel.toggleTheme() },
-                        onToggleContrast = { viewModel.toggleContrast() }
-                    )
+                    Box(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
+                        AppNavigation(
+                            navController = navController,
+                            isDarkMode = themeState.isDarkMode,
+                            isHighContrast = themeState.isHighContrast,
+                            onToggleTheme = { viewModel.toggleTheme() },
+                            onToggleContrast = { viewModel.toggleContrast() }
+                        )
+                    }
                 }
             }
         }

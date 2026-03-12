@@ -303,7 +303,7 @@ fun ScoreCard(score: QuizScore, delayMs: Long) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Score Circle
@@ -338,27 +338,33 @@ fun ScoreCard(score: QuizScore, delayMs: Long) {
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 4.dp)
                 )
-
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 ) {
-                    AssistChip(
-                        onClick = { },
-                        label = { Text(score.difficulty.name.lowercase().replaceFirstChar { it.uppercase() }) },
-                        colors = AssistChipDefaults.assistChipColors(containerColor = diffColor.copy(alpha = 0.1f))
+                    Icon(
+                        imageVector = Icons.Default.CalendarToday,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    
-                    AssistChip(
-                        onClick = { },
-                        leadingIcon = {
-                            Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(16.dp))
-                        },
-                        label = { Text(formatDate(score.date)) }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = formatDate(score.date),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
+                AssistChip(
+                    onClick = { },
+                    label = { Text(score.difficulty.name.lowercase().replaceFirstChar { it.uppercase() }) },
+                    colors = AssistChipDefaults.assistChipColors(containerColor = diffColor.copy(alpha = 0.1f)),
+                    modifier = Modifier.height(32.dp)
+                )
             }
 
             Spacer(modifier = Modifier.width(16.dp))
