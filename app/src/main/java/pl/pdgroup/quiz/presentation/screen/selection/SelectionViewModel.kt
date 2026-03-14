@@ -31,7 +31,8 @@ class SelectionViewModel @Inject constructor(
                 val difficulty = state.selectedDifficulty
                 if (category != null && difficulty != null) {
                     setState { copy(isLoading = true, error = null) }
-                    val result = getQuestionsUseCase(category, difficulty)
+                    // Force refresh to get new questions from API on Start
+                    val result = getQuestionsUseCase(category, difficulty, forceRefresh = true)
                     setState { copy(isLoading = false) }
                     result.onSuccess {
                         setEffect { SelectionContract.Effect.NavigateToQuiz(category, difficulty) }
@@ -49,16 +50,10 @@ class SelectionViewModel @Inject constructor(
     }
 
     private fun updateAvailableQuestions() {
-        // Here we could realistically just query the db for count without returning actual items,
-        // but for MVP, we just set a dummy value or call the usecase. 
-        // We will just do a simplified check for the UI panel
         val state = state.value
         if (state.selectedCategory != null && state.selectedDifficulty != null) {
-            viewModelScope.launch {
-                val result = getQuestionsUseCase(state.selectedCategory, state.selectedDifficulty)
-                val count = result.getOrNull()?.size ?: 0
-                setState { copy(availableQuestionsCount = count) }
-            }
+            // We request 7 questions from the API
+            setState { copy(availableQuestionsCount = 7) }
         } else {
             setState { copy(availableQuestionsCount = 0) }
         }

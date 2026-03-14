@@ -1,30 +1,54 @@
 package pl.pdgroup.quiz.data.repository
 
-import android.content.Context
+import android.text.Html
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import pl.pdgroup.quiz.data.local.ScoreDao
 import pl.pdgroup.quiz.data.local.ScoreEntity
+import pl.pdgroup.quiz.data.remote.api.OpenTdbApi
 import pl.pdgroup.quiz.domain.model.Difficulty
 import pl.pdgroup.quiz.domain.model.Question
 import pl.pdgroup.quiz.domain.model.QuizScore
 import pl.pdgroup.quiz.domain.repository.QuizRepository
 
 class QuizRepositoryImpl(
-    private val context: Context,
-    private val scoreDao: ScoreDao
+    private val scoreDao: ScoreDao,
+    private val openTdbApi: OpenTdbApi
 ) : QuizRepository {
 
-    private val jsonParser = Json { ignoreUnknownKeys = true }
     private var cachedQuestions: List<Question>? = null
+    private var lastCategory: String? = null
+    private var lastDifficulty: Difficulty? = null
 
-    override suspend fun getQuestions(category: String, difficulty: Difficulty): List<Question> {
+    override suspend fun getQuestions(category: String, difficulty: Difficulty, forceRefresh: Boolean): List<Question> {
         return withContext(Dispatchers.IO) {
-            val allQuestions = loadQuestions()
-            allQuestions.filter { it.category == category && it.difficulty == difficulty }
+            if (!forceRefresh && cachedQuestions != null && lastCategory == category && lastDifficulty == difficulty) {
+                return@withContext cachedQuestions!!
+            }
+
+            val categoryId = getCategoryId(category)
+            val diffString = difficulty.name.lowercase()
+            val response = openTdbApi.getQuestions(
+                amount = 7,
+                category = categoryId,
+                difficulty = diffString
+            )
+            
+            val questions = response.results.map { question ->
+                question.copy(
+                    question = decodeHtmlEntities(question.question),
+                    correctAnswer = decodeHtmlEntities(question.correctAnswer),
+                    incorrectAnswers = question.incorrectAnswers.map { decodeHtmlEntities(it) }
+                )
+            }
+            
+            lastCategory = category
+            lastDifficulty = difficulty
+            cachedQuestions = questions
+            
+            questions
         }
     }
 
@@ -56,17 +80,19 @@ class QuizRepositoryImpl(
         }
     }
 
-    private fun loadQuestions(): List<Question> {
-        if (cachedQuestions != null) return cachedQuestions!!
-        
-        return try {
-            val jsonString = context.assets.open("questions.json").bufferedReader().use { it.readText() }
-            val parsed = jsonParser.decodeFromString<List<Question>>(jsonString)
-            cachedQuestions = parsed
-            parsed
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
+    private fun getCategoryId(categoryName: String): Int {
+        return when (categoryName) {
+            "Sports" -> 21
+            "Science & Nature" -> 17
+            "Animals" -> 27
+            "Geography" -> 22
+            "History" -> 23
+            "General Knowledge" -> 9
+            else -> 9
         }
+    }
+
+    private fun decodeHtmlEntities(text: String): String {
+        return Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY).toString()
     }
 }

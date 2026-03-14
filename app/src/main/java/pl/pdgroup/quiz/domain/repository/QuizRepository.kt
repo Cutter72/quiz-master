@@ -6,7 +6,7 @@ import pl.pdgroup.quiz.domain.model.Question
 import pl.pdgroup.quiz.domain.model.QuizScore
 
 interface QuizRepository {
-    suspend fun getQuestions(category: String, difficulty: Difficulty): List<Question>
+    suspend fun getQuestions(category: String, difficulty: Difficulty, forceRefresh: Boolean = false): List<Question>
     fun getScores(): Flow<List<QuizScore>>
     suspend fun saveScore(score: QuizScore)
 }

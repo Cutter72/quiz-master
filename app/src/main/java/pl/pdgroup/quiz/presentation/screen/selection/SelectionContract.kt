@@ -7,7 +7,7 @@ import pl.pdgroup.quiz.presentation.mvi.ViewState
 
 class SelectionContract {
     data class State(
-        val categories: List<String> = listOf("Sports", "Science", "History", "Geography", "Entertainment", "Technology"),
+        val categories: List<String> = listOf("Sports", "Science & Nature", "Animals", "Geography", "History", "General Knowledge"),
         val difficulties: List<Difficulty> = listOf(Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD),
         val selectedCategory: String? = null,
         val selectedDifficulty: Difficulty? = null,

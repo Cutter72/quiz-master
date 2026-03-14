@@ -8,9 +8,9 @@ import javax.inject.Inject
 class GetQuestionsUseCase @Inject constructor(
     private val repository: QuizRepository
 ) {
-    suspend operator fun invoke(category: String, difficulty: Difficulty): Result<List<Question>> {
+    suspend operator fun invoke(category: String, difficulty: Difficulty, forceRefresh: Boolean = false): Result<List<Question>> {
         return try {
-            val questions = repository.getQuestions(category, difficulty)
+            val questions = repository.getQuestions(category, difficulty, forceRefresh)
             if (questions.size < 3) {
                 Result.failure(Exception("Not enough questions available for $category - ${difficulty.name}. Only ${questions.size} question(s) found. Please try another combination."))
             } else {
