@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ResultViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     private val saveScoreUseCase: SaveScoreUseCase
 ) : BaseViewModel<ResultContract.State, ResultContract.Intent, ResultContract.Effect>() {
 
@@ -39,13 +39,19 @@ class ResultViewModel @Inject constructor(
             )
         }
 
-        viewModelScope.launch {
-            try {
-                saveScoreUseCase(category, difficulty, score, total)
-                setState { copy(isSaved = true) }
-            } catch (e: Exception) {
-                // Ignore error for now, maybe log it
+        val hasSaved = savedStateHandle.get<Boolean>("hasSaved") ?: false
+        if (!hasSaved) {
+            viewModelScope.launch {
+                try {
+                    saveScoreUseCase(category, difficulty, score, total)
+                    savedStateHandle["hasSaved"] = true
+                    setState { copy(isSaved = true) }
+                } catch (e: Exception) {
+                    // Ignore error for now, maybe log it
+                }
             }
+        } else {
+            setState { copy(isSaved = true) }
         }
     }
 

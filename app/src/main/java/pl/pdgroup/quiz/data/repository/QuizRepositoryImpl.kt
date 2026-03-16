@@ -36,11 +36,14 @@ class QuizRepositoryImpl(
                 difficulty = diffString
             )
             
-            val questions = response.results.map { question ->
-                question.copy(
-                    question = decodeHtmlEntities(question.question),
-                    correctAnswer = decodeHtmlEntities(question.correctAnswer),
-                    incorrectAnswers = question.incorrectAnswers.map { decodeHtmlEntities(it) }
+            val questions = response.results.map { dto ->
+                Question(
+                    type = dto.type,
+                    difficulty = try { Difficulty.valueOf(dto.difficulty.uppercase()) } catch (e: Exception) { Difficulty.EASY },
+                    category = dto.category,
+                    question = decodeHtmlEntities(dto.question),
+                    correctAnswer = decodeHtmlEntities(dto.correctAnswer),
+                    incorrectAnswers = dto.incorrectAnswers.map { decodeHtmlEntities(it) }
                 )
             }
             

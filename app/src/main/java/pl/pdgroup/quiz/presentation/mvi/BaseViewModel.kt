@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 abstract class BaseViewModel<S : ViewState, I : ViewIntent, E : ViewEffect> : ViewModel() {
@@ -31,8 +32,7 @@ abstract class BaseViewModel<S : ViewState, I : ViewIntent, E : ViewEffect> : Vi
     protected abstract suspend fun processIntent(intent: I)
 
     protected fun setState(reduce: S.() -> S) {
-        val newState = _state.value.reduce()
-        _state.value = newState
+        _state.update { it.reduce() }
     }
 
     protected fun setEffect(builder: () -> E) {
