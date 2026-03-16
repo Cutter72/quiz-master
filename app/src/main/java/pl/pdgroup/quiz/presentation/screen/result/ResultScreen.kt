@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import pl.pdgroup.quiz.domain.model.Difficulty
 import pl.pdgroup.quiz.ui.theme.ErrorDark
 import pl.pdgroup.quiz.ui.theme.ErrorLight
 import pl.pdgroup.quiz.ui.theme.SuccessDark
@@ -87,166 +88,208 @@ fun ResultScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Trophy Animation
-            val scaleAnim = remember { Animatable(0f) }
-            val rotateAnim = remember { Animatable(0f) }
-            val pulseScaleAnim = remember { Animatable(1f) }
+            ResultTrophy(themeColor = themeColor)
 
-            LaunchedEffect(Unit) {
-                scaleAnim.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
-
-                while (true) {
-                    delay(3500)
-                    // Wiggle
-                    rotateAnim.animateTo(-10f, tween(150))
-                    rotateAnim.animateTo(10f, tween(150))
-                    rotateAnim.animateTo(-10f, tween(150))
-                    rotateAnim.animateTo(0f, tween(150))
-
-                    // Pulse
-                    pulseScaleAnim.animateTo(1.1f, tween(150))
-                    pulseScaleAnim.animateTo(1f, tween(150))
-                }
-            }
-
-            Icon(
-                imageVector = Icons.Default.EmojiEvents,
-                contentDescription = "Trophy",
-                tint = themeColor,
-                modifier = Modifier
-                    .size(120.dp)
-                    .scale(scaleAnim.value * pulseScaleAnim.value)
-                    .rotate(rotateAnim.value)
-                    .padding(bottom = 32.dp)
+            ResultDetailsCard(
+                message = message,
+                score = state.score,
+                totalQuestions = state.totalQuestions,
+                percentage = state.percentage,
+                themeColor = themeColor,
+                category = state.category,
+                difficulty = state.difficulty
             )
 
-            // Result Card
-            val cardAlphaAnim = remember { Animatable(0f) }
-            val cardOffsetYAnim = remember { Animatable(20f) }
-
-            LaunchedEffect(Unit) {
-                delay(200)
-                launch { cardAlphaAnim.animateTo(1f, tween(500)) }
-                launch { cardOffsetYAnim.animateTo(0f, tween(500)) }
-            }
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .alpha(cardAlphaAnim.value)
-                    .offset(y = cardOffsetYAnim.value.dp)
-                    .padding(bottom = 32.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = themeColor,
-                        modifier = Modifier.padding(bottom = 32.dp),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Text(
-                        text = "${state.score}/${state.totalQuestions}",
-                        style = MaterialTheme.typography.displayLarge,
-                        color = themeColor,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    Text(
-                        text = "${state.percentage}% Correct",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 32.dp)
-                    )
-
-                    // Progress Bar
-                    val animatedProgress by animateFloatAsState(
-                        targetValue = state.percentage / 100f,
-                        animationSpec = tween(1000, easing = FastOutSlowInEasing)
-                    )
-
-                    LinearProgressIndicator(
-                        progress = { animatedProgress },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(12.dp)
-                            .padding(bottom = 24.dp)
-                            .clip(RoundedCornerShape(6.dp)),
-                        color = themeColor,
-                        trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-                        drawStopIndicator = {}
-                    )
-
-                    // Info Panel
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .padding(16.dp)
-                    ) {
-                        Column {
-                            Text(
-                                text = "Category: ${state.category}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Difficulty: ${state.difficulty.name.lowercase().replaceFirstChar { it.uppercase() }}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Action Buttons
-            AnimatedButton(
-                text = "Try Another Quiz",
-                icon = Icons.Default.Refresh,
-                delayMs = 400,
-                isOutlined = false,
-                isText = false,
-                onClick = { viewModel.handleIntent(ResultContract.Intent.TryAnotherQuiz) }
+            ResultActionButtons(
+                onTryAnother = { viewModel.handleIntent(ResultContract.Intent.TryAnotherQuiz) },
+                onViewScoreboard = { viewModel.handleIntent(ResultContract.Intent.ViewScoreboard) },
+                onBackToHome = { viewModel.handleIntent(ResultContract.Intent.BackToHome) }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            AnimatedButton(
-                text = "View Scoreboard",
-                icon = Icons.Default.Leaderboard,
-                delayMs = 500,
-                isOutlined = true,
-                isText = false,
-                onClick = { viewModel.handleIntent(ResultContract.Intent.ViewScoreboard) }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            AnimatedButton(
-                text = "Back to Home",
-                icon = Icons.Default.Home,
-                delayMs = 600,
-                isOutlined = false,
-                isText = true,
-                onClick = { viewModel.handleIntent(ResultContract.Intent.BackToHome) }
-            )
-            
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
+}
+
+@Composable
+fun ResultTrophy(themeColor: Color) {
+    val scaleAnim = remember { Animatable(0f) }
+    val rotateAnim = remember { Animatable(0f) }
+    val pulseScaleAnim = remember { Animatable(1f) }
+
+    LaunchedEffect(Unit) {
+        scaleAnim.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+
+        while (true) {
+            delay(3500)
+            rotateAnim.animateTo(-10f, tween(150))
+            rotateAnim.animateTo(10f, tween(150))
+            rotateAnim.animateTo(-10f, tween(150))
+            rotateAnim.animateTo(0f, tween(150))
+
+            pulseScaleAnim.animateTo(1.1f, tween(150))
+            pulseScaleAnim.animateTo(1f, tween(150))
+        }
+    }
+
+    Icon(
+        imageVector = Icons.Default.EmojiEvents,
+        contentDescription = "Trophy",
+        tint = themeColor,
+        modifier = Modifier
+            .size(120.dp)
+            .scale(scaleAnim.value * pulseScaleAnim.value)
+            .rotate(rotateAnim.value)
+            .padding(bottom = 32.dp)
+    )
+}
+
+@Composable
+fun ResultDetailsCard(
+    message: String,
+    score: Int,
+    totalQuestions: Int,
+    percentage: Int,
+    themeColor: Color,
+    category: String,
+    difficulty: Difficulty
+) {
+    val cardAlphaAnim = remember { Animatable(0f) }
+    val cardOffsetYAnim = remember { Animatable(20f) }
+
+    LaunchedEffect(Unit) {
+        delay(200)
+        launch { cardAlphaAnim.animateTo(1f, tween(500)) }
+        launch { cardOffsetYAnim.animateTo(0f, tween(500)) }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(cardAlphaAnim.value)
+            .offset(y = cardOffsetYAnim.value.dp)
+            .padding(bottom = 32.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.headlineLarge,
+                color = themeColor,
+                modifier = Modifier.padding(bottom = 32.dp),
+                textAlign = TextAlign.Center
+            )
+
+            Text(
+                text = "$score/$totalQuestions",
+                style = MaterialTheme.typography.displayLarge,
+                color = themeColor,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Text(
+                text = "$percentage% Correct",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
+
+            ResultProgressBar(percentage = percentage, themeColor = themeColor)
+
+            ResultInfoPanel(category = category, difficulty = difficulty)
+        }
+    }
+}
+
+@Composable
+fun ResultProgressBar(percentage: Int, themeColor: Color) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = percentage / 100f,
+        animationSpec = tween(1000, easing = FastOutSlowInEasing)
+    )
+
+    LinearProgressIndicator(
+        progress = { animatedProgress },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(12.dp)
+            .padding(bottom = 24.dp)
+            .clip(RoundedCornerShape(6.dp)),
+        color = themeColor,
+        trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+        drawStopIndicator = {}
+    )
+}
+
+@Composable
+fun ResultInfoPanel(category: String, difficulty: Difficulty) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Column {
+            Text(
+                text = "Category: $category",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Difficulty: ${difficulty.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun ResultActionButtons(
+    onTryAnother: () -> Unit,
+    onViewScoreboard: () -> Unit,
+    onBackToHome: () -> Unit
+) {
+    AnimatedButton(
+        text = "Try Another Quiz",
+        icon = Icons.Default.Refresh,
+        delayMs = 400,
+        isOutlined = false,
+        isText = false,
+        onClick = onTryAnother
+    )
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    AnimatedButton(
+        text = "View Scoreboard",
+        icon = Icons.Default.Leaderboard,
+        delayMs = 500,
+        isOutlined = true,
+        isText = false,
+        onClick = onViewScoreboard
+    )
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    AnimatedButton(
+        text = "Back to Home",
+        icon = Icons.Default.Home,
+        delayMs = 600,
+        isOutlined = false,
+        isText = true,
+        onClick = onBackToHome
+    )
 }
 
 @Composable
@@ -299,7 +342,6 @@ fun ConfettiEffect() {
     val configuration = LocalConfiguration.current
     val density = LocalDensity.current
     
-    // Using simple px resolution bounds as particles flow infinitely. Using safe width.
     val w = configuration.screenWidthDp.toFloat()
     val screenWidthPx = with(density) { w.dp.toPx() }
     val h = configuration.screenHeightDp.toFloat()

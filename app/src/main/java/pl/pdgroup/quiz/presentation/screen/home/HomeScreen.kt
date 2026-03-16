@@ -1,7 +1,6 @@
 package pl.pdgroup.quiz.presentation.screen.home
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -68,110 +67,143 @@ fun HomeScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header Controls
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                IconButton(onClick = onToggleTheme) {
-                    Icon(
-                        imageVector = if (isDarkMode) Icons.Outlined.LightMode else Icons.Outlined.DarkMode,
-                        contentDescription = "Toggle Theme",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = onToggleContrast) {
-                    Icon(
-                        imageVector = Icons.Outlined.Contrast,
-                        contentDescription = "Toggle Contrast",
-                        tint = if (isHighContrast) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-            }
+            HomeHeaderControls(
+                isDarkMode = isDarkMode,
+                isHighContrast = isHighContrast,
+                onToggleTheme = onToggleTheme,
+                onToggleContrast = onToggleContrast
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Hero Section
-            val wiggleAnim = remember { Animatable(0f) }
-            LaunchedEffect(Unit) {
-                while (true) {
-                    delay(3000)
-                    wiggleAnim.animateTo(10f, tween(100))
-                    wiggleAnim.animateTo(-10f, tween(100))
-                    wiggleAnim.animateTo(10f, tween(100))
-                    wiggleAnim.animateTo(0f, tween(100))
-                }
-            }
+            HomeHeroSection()
 
+            Spacer(modifier = Modifier.height(48.dp))
+
+            HomeActionCards(
+                onNavigateToSelection = onNavigateToSelection,
+                onNavigateToScoreboard = onNavigateToScoreboard
+            )
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            HomeFooterInfo()
+        }
+    }
+}
+
+@Composable
+fun HomeHeaderControls(
+    isDarkMode: Boolean,
+    isHighContrast: Boolean,
+    onToggleTheme: () -> Unit,
+    onToggleContrast: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        IconButton(onClick = onToggleTheme) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.List,
-                contentDescription = "Quiz Logo",
+                imageVector = if (isDarkMode) Icons.Outlined.LightMode else Icons.Outlined.DarkMode,
+                contentDescription = "Toggle Theme",
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(120.dp)
-                    .rotate(wiggleAnim.value)
+                modifier = Modifier.size(32.dp)
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Quiz Master",
-                style = MaterialTheme.typography.displayMedium,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Test your knowledge across multiple categories",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            ActionCard(
-                title = "Start Quiz",
-                description = "Choose a category and difficulty level",
-                icon = Icons.AutoMirrored.Filled.List,
-                iconBgColor = MaterialTheme.colorScheme.primary,
-                delayMs = 200,
-                onClick = onNavigateToSelection
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            ActionCard(
-                title = "Scoreboard",
-                description = "View your quiz history and scores",
-                icon = Icons.Default.Leaderboard,
-                iconBgColor = MaterialTheme.colorScheme.secondary,
-                delayMs = 400,
-                onClick = onNavigateToScoreboard
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            // Footer Info
-            val footerAlpha = remember { Animatable(0f) }
-            LaunchedEffect(Unit) {
-                delay(600)
-                footerAlpha.animateTo(1f, tween(500))
-            }
-
-            Text(
-                text = "Answer all 5 questions to save your score",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.alpha(footerAlpha.value)
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        IconButton(onClick = onToggleContrast) {
+            Icon(
+                imageVector = Icons.Outlined.Contrast,
+                contentDescription = "Toggle Contrast",
+                tint = if (isHighContrast) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(32.dp)
             )
         }
     }
+}
+
+@Composable
+fun HomeHeroSection() {
+    val wiggleAnim = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(3000)
+            wiggleAnim.animateTo(10f, tween(100))
+            wiggleAnim.animateTo(-10f, tween(100))
+            wiggleAnim.animateTo(10f, tween(100))
+            wiggleAnim.animateTo(0f, tween(100))
+        }
+    }
+
+    Icon(
+        imageVector = Icons.AutoMirrored.Filled.List,
+        contentDescription = "Quiz Logo",
+        tint = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .size(120.dp)
+            .rotate(wiggleAnim.value)
+    )
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    Text(
+        text = "Quiz Master",
+        style = MaterialTheme.typography.displayMedium,
+        textAlign = TextAlign.Center
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Text(
+        text = "Test your knowledge across multiple categories",
+        style = MaterialTheme.typography.headlineSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
+fun HomeActionCards(
+    onNavigateToSelection: () -> Unit,
+    onNavigateToScoreboard: () -> Unit
+) {
+    ActionCard(
+        title = "Start Quiz",
+        description = "Choose a category and difficulty level",
+        icon = Icons.AutoMirrored.Filled.List,
+        iconBgColor = MaterialTheme.colorScheme.primary,
+        delayMs = 200,
+        onClick = onNavigateToSelection
+    )
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    ActionCard(
+        title = "Scoreboard",
+        description = "View your quiz history and scores",
+        icon = Icons.Default.Leaderboard,
+        iconBgColor = MaterialTheme.colorScheme.secondary,
+        delayMs = 400,
+        onClick = onNavigateToScoreboard
+    )
+}
+
+@Composable
+fun HomeFooterInfo() {
+    val footerAlpha = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        delay(600)
+        footerAlpha.animateTo(1f, tween(500))
+    }
+
+    Text(
+        text = "Answer all questions to save your score",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.alpha(footerAlpha.value)
+    )
 }
 
 @Composable

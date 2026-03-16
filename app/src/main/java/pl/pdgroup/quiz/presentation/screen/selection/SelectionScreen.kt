@@ -60,15 +60,9 @@ fun SelectionScreen(
     }
 
     if (state.error != null) {
-        AlertDialog(
-            onDismissRequest = { viewModel.handleIntent(SelectionContract.Intent.ClearError) },
-            title = { Text("Notice") },
-            text = { Text(state.error ?: "") },
-            confirmButton = {
-                TextButton(onClick = { viewModel.handleIntent(SelectionContract.Intent.ClearError) }) {
-                    Text("OK")
-                }
-            }
+        SelectionErrorDialog(
+            error = state.error,
+            onDismiss = { viewModel.handleIntent(SelectionContract.Intent.ClearError) }
         )
     }
 
@@ -80,165 +74,234 @@ fun SelectionScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = "Select Quiz Options",
-                    style = MaterialTheme.typography.headlineLarge
-                )
-            }
+            SelectionHeader(onNavigateBack = onNavigateBack)
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Category Selection
-            SelectionCard(
-                title = "Choose a Category",
-                delayMs = 0
-            ) {
-                @OptIn(ExperimentalLayoutApi::class)
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    maxItemsInEachRow = 3 // responsive adjustment can be refined
-                ) {
-                    state.categories.forEachIndexed { index, category ->
-                        val isSelected = state.selectedCategory == category
-                        Box(modifier = Modifier.weight(1f)) {
-                            SelectableChip(
-                                text = category,
-                                isSelected = isSelected,
-                                selectedColor = MaterialTheme.colorScheme.primary,
-                                delayMs = index * 50L,
-                                onClick = { viewModel.handleIntent(SelectionContract.Intent.SelectCategory(category)) }
-                            )
-                        }
-                    }
-                }
-            }
+            CategorySelection(
+                categories = state.categories,
+                selectedCategory = state.selectedCategory,
+                onCategorySelected = { viewModel.handleIntent(SelectionContract.Intent.SelectCategory(it)) }
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Difficulty Selection
-            SelectionCard(
-                title = "Choose Difficulty",
-                delayMs = 200
-            ) {
-                @OptIn(ExperimentalLayoutApi::class)
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    maxItemsInEachRow = 3
-                ) {
-                    state.difficulties.forEachIndexed { index, difficulty ->
-                        val isSelected = state.selectedDifficulty == difficulty
-                        val isDark = MaterialTheme.colorScheme.background.red < 0.5f // simple dark mode check
-                        val color = when (difficulty) {
-                            Difficulty.EASY -> if (isDark) SuccessDark else SuccessLight
-                            Difficulty.MEDIUM -> MaterialTheme.colorScheme.secondary
-                            Difficulty.HARD -> MaterialTheme.colorScheme.error
-                        }
-                        
-                        Box(modifier = Modifier.weight(1f)) {
-                            SelectableChip(
-                                text = difficulty.name.lowercase().replaceFirstChar { it.uppercase() },
-                                isSelected = isSelected,
-                                selectedColor = color,
-                                delayMs = 200L + (index * 50L),
-                                onClick = { viewModel.handleIntent(SelectionContract.Intent.SelectDifficulty(difficulty)) }
-                            )
-                        }
-                    }
-                }
-            }
+            DifficultySelection(
+                difficulties = state.difficulties,
+                selectedDifficulty = state.selectedDifficulty,
+                onDifficultySelected = { viewModel.handleIntent(SelectionContract.Intent.SelectDifficulty(it)) }
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Info Panel
-            AnimatedVisibility(
-                visible = state.selectedCategory != null && state.selectedDifficulty != null,
-                enter = fadeIn(tween(500))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .padding(24.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "You selected ${state.selectedCategory} with ${state.selectedDifficulty?.name?.lowercase()?.replaceFirstChar { it.uppercase() }} difficulty",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "${state.availableQuestionsCount} question(s) available • Complete all to save your score",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
+            SelectionInfoPanel(
+                selectedCategory = state.selectedCategory,
+                selectedDifficulty = state.selectedDifficulty,
+                availableQuestionsCount = state.availableQuestionsCount
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Start Quiz Button
-            val startButtonAlpha = remember { Animatable(0f) }
-            val startButtonOffsetY = remember { Animatable(20f) }
-
-            LaunchedEffect(Unit) {
-                delay(400)
-                launch { startButtonAlpha.animateTo(1f, tween(300)) }
-                launch { startButtonOffsetY.animateTo(0f, tween(300)) }
-            }
-
-            Button(
-                onClick = { viewModel.handleIntent(SelectionContract.Intent.StartQuiz) },
-                enabled = state.isStartEnabled,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp)
-                    .alpha(startButtonAlpha.value)
-                    .offset(y = startButtonOffsetY.value.dp),
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = Color.Gray,
-                    disabledContentColor = Color.DarkGray
-                )
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                } else {
-                    Text(
-                        text = "Start Quiz",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
+            StartQuizButton(
+                isStartEnabled = state.isStartEnabled,
+                isLoading = state.isLoading,
+                onStartClick = { viewModel.handleIntent(SelectionContract.Intent.StartQuiz) }
+            )
             
             Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+fun SelectionErrorDialog(
+    error: String?,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Notice") },
+        text = { Text(error ?: "") },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("OK")
+            }
+        }
+    )
+}
+
+@Composable
+fun SelectionHeader(onNavigateBack: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onNavigateBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = "Select Quiz Options",
+            style = MaterialTheme.typography.headlineLarge
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun CategorySelection(
+    categories: List<String>,
+    selectedCategory: String?,
+    onCategorySelected: (String) -> Unit
+) {
+    SelectionCard(
+        title = "Choose a Category",
+        delayMs = 0
+    ) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            maxItemsInEachRow = 3
+        ) {
+            categories.forEachIndexed { index, category ->
+                val isSelected = selectedCategory == category
+                Box(modifier = Modifier.weight(1f)) {
+                    SelectableChip(
+                        text = category,
+                        isSelected = isSelected,
+                        selectedColor = MaterialTheme.colorScheme.primary,
+                        delayMs = index * 50L,
+                        onClick = { onCategorySelected(category) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun DifficultySelection(
+    difficulties: List<Difficulty>,
+    selectedDifficulty: Difficulty?,
+    onDifficultySelected: (Difficulty) -> Unit
+) {
+    SelectionCard(
+        title = "Choose Difficulty",
+        delayMs = 200
+    ) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            maxItemsInEachRow = 3
+        ) {
+            difficulties.forEachIndexed { index, difficulty ->
+                val isSelected = selectedDifficulty == difficulty
+                val isDark = MaterialTheme.colorScheme.background.red < 0.5f
+                val color = when (difficulty) {
+                    Difficulty.EASY -> if (isDark) SuccessDark else SuccessLight
+                    Difficulty.MEDIUM -> MaterialTheme.colorScheme.secondary
+                    Difficulty.HARD -> MaterialTheme.colorScheme.error
+                }
+                
+                Box(modifier = Modifier.weight(1f)) {
+                    SelectableChip(
+                        text = difficulty.name.lowercase().replaceFirstChar { it.uppercase() },
+                        isSelected = isSelected,
+                        selectedColor = color,
+                        delayMs = 200L + (index * 50L),
+                        onClick = { onDifficultySelected(difficulty) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SelectionInfoPanel(
+    selectedCategory: String?,
+    selectedDifficulty: Difficulty?,
+    availableQuestionsCount: Int
+) {
+    AnimatedVisibility(
+        visible = selectedCategory != null && selectedDifficulty != null,
+        enter = fadeIn(tween(500))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "You selected $selectedCategory with ${selectedDifficulty?.name?.lowercase()?.replaceFirstChar { it.uppercase() }} difficulty",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "$availableQuestionsCount question(s) available • Complete all to save your score",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StartQuizButton(
+    isStartEnabled: Boolean,
+    isLoading: Boolean,
+    onStartClick: () -> Unit
+) {
+    val startButtonAlpha = remember { Animatable(0f) }
+    val startButtonOffsetY = remember { Animatable(20f) }
+
+    LaunchedEffect(Unit) {
+        delay(400)
+        launch { startButtonAlpha.animateTo(1f, tween(300)) }
+        launch { startButtonOffsetY.animateTo(0f, tween(300)) }
+    }
+
+    Button(
+        onClick = onStartClick,
+        enabled = isStartEnabled,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .alpha(startButtonAlpha.value)
+            .offset(y = startButtonOffsetY.value.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            disabledContainerColor = Color.Gray,
+            disabledContentColor = Color.DarkGray
+        )
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+        } else {
+            Text(
+                text = "Start Quiz",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }

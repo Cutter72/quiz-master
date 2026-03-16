@@ -52,147 +52,111 @@ fun ScoreboardScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Header
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Icon(
-                    imageVector = Icons.Default.EmojiEvents,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Scoreboard",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-            }
+            ScoreboardHeader(onNavigateBack = onNavigateBack)
 
             if (state.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+                ScoreboardLoadingState()
             } else {
-                // Stats Overview
                 if (state.allScores.isNotEmpty()) {
-                    val statsAlpha = remember { Animatable(0f) }
-                    val statsOffsetY = remember { Animatable(-20f) }
-
-                    LaunchedEffect(Unit) {
-                        launch { statsAlpha.animateTo(1f, tween(500)) }
-                        launch { statsOffsetY.animateTo(0f, tween(500)) }
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .alpha(statsAlpha.value)
-                            .offset(y = statsOffsetY.value.dp)
-                            .padding(bottom = 32.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        StatCard(
-                            modifier = Modifier.weight(1f),
-                            value = "${state.totalQuizzes}",
-                            label = "Quizzes",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        StatCard(
-                            modifier = Modifier.weight(1f),
-                            value = String.format(Locale.getDefault(), "%.1f%%", state.averageScore),
-                            label = "Average",
-                            color = if (isDark) SuccessDark else SuccessLight
-                        )
-                        StatCard(
-                            modifier = Modifier.weight(1f),
-                            value = "${state.bestScore}%",
-                            label = "Best",
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
+                    ScoreboardStatsOverview(
+                        totalQuizzes = state.totalQuizzes,
+                        averageScore = state.averageScore,
+                        bestScore = state.bestScore,
+                        isDark = isDark
+                    )
                 }
 
-                // Tabs
-                val tabsAlpha = remember { Animatable(0f) }
-                LaunchedEffect(Unit) {
-                    delay(100)
-                    tabsAlpha.animateTo(1f, tween(500))
-                }
+                ScoreboardCategoryTabs(
+                    categories = state.categories,
+                    selectedCategory = state.selectedCategory,
+                    onCategorySelected = { viewModel.handleIntent(ScoreboardContract.Intent.SelectCategory(it)) }
+                )
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .alpha(tabsAlpha.value)
-                        .padding(bottom = 24.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    ScrollableTabRow(
-                        selectedTabIndex = state.categories.indexOf(state.selectedCategory).coerceAtLeast(0),
-                        modifier = Modifier.padding(8.dp),
-                        containerColor = Color.Transparent,
-                        edgePadding = 8.dp,
-                        divider = {}
-                    ) {
-                        state.categories.forEachIndexed { index, category ->
-                            val isSelected = category == state.selectedCategory
-                            Tab(
-                                selected = isSelected,
-                                onClick = { viewModel.handleIntent(ScoreboardContract.Intent.SelectCategory(category)) },
-                                modifier = Modifier
-                                    .height(48.dp)
-                                    .padding(horizontal = 4.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                        else Color.Transparent
-                                    )
-                            ) {
-                                Text(
-                                    text = category,
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Content
-                AnimatedContent(
-                    targetState = state.filteredScores.isEmpty(),
-                    transitionSpec = { fadeIn(tween(500)).togetherWith(fadeOut(tween(500))) }
-                ) { isEmpty ->
-                    if (isEmpty) {
-                        EmptyState()
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            contentPadding = PaddingValues(bottom = 32.dp)
-                        ) {
-                            itemsIndexed(state.filteredScores) { index, score ->
-                                ScoreCard(score = score, delayMs = index * 50L)
-                            }
-                        }
-                    }
-                }
+                ScoreboardContent(state = state)
             }
         }
+    }
+}
+
+@Composable
+fun ScoreboardHeader(onNavigateBack: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 32.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onNavigateBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Icon(
+            imageVector = Icons.Default.EmojiEvents,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(32.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "Scoreboard",
+            style = MaterialTheme.typography.headlineMedium
+        )
+    }
+}
+
+@Composable
+fun ScoreboardLoadingState() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+fun ScoreboardStatsOverview(
+    totalQuizzes: Int,
+    averageScore: Double,
+    bestScore: Int,
+    isDark: Boolean
+) {
+    val statsAlpha = remember { Animatable(0f) }
+    val statsOffsetY = remember { Animatable(-20f) }
+
+    LaunchedEffect(Unit) {
+        launch { statsAlpha.animateTo(1f, tween(500)) }
+        launch { statsOffsetY.animateTo(0f, tween(500)) }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(statsAlpha.value)
+            .offset(y = statsOffsetY.value.dp)
+            .padding(bottom = 32.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        StatCard(
+            modifier = Modifier.weight(1f),
+            value = "$totalQuizzes",
+            label = "Quizzes",
+            color = MaterialTheme.colorScheme.primary
+        )
+        StatCard(
+            modifier = Modifier.weight(1f),
+            value = String.format(Locale.getDefault(), "%.1f%%", averageScore),
+            label = "Average",
+            color = if (isDark) SuccessDark else SuccessLight
+        )
+        StatCard(
+            modifier = Modifier.weight(1f),
+            value = "$bestScore%",
+            label = "Best",
+            color = MaterialTheme.colorScheme.secondary
+        )
     }
 }
 
@@ -222,6 +186,81 @@ fun StatCard(modifier: Modifier = Modifier, value: String, label: String, color:
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+@Composable
+fun ScoreboardCategoryTabs(
+    categories: List<String>,
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit
+) {
+    val tabsAlpha = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        delay(100)
+        tabsAlpha.animateTo(1f, tween(500))
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(tabsAlpha.value)
+            .padding(bottom = 24.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        ScrollableTabRow(
+            selectedTabIndex = categories.indexOf(selectedCategory).coerceAtLeast(0),
+            modifier = Modifier.padding(8.dp),
+            containerColor = Color.Transparent,
+            edgePadding = 8.dp,
+            divider = {}
+        ) {
+            categories.forEachIndexed { index, category ->
+                val isSelected = category == selectedCategory
+                Tab(
+                    selected = isSelected,
+                    onClick = { onCategorySelected(category) },
+                    modifier = Modifier
+                        .height(48.dp)
+                        .padding(horizontal = 4.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            else Color.Transparent
+                        )
+                ) {
+                    Text(
+                        text = category,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ScoreboardContent(state: ScoreboardContract.State) {
+    AnimatedContent(
+        targetState = state.filteredScores.isEmpty(),
+        transitionSpec = { fadeIn(tween(500)).togetherWith(fadeOut(tween(500))) }
+    ) { isEmpty ->
+        if (isEmpty) {
+            EmptyState()
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 32.dp)
+            ) {
+                itemsIndexed(state.filteredScores) { index, score ->
+                    ScoreCard(score = score, delayMs = index * 50L)
+                }
+            }
         }
     }
 }
