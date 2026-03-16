@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import pl.pdgroup.quiz.R
 import pl.pdgroup.quiz.domain.model.Difficulty
 import pl.pdgroup.quiz.ui.theme.SuccessLight
 import pl.pdgroup.quiz.ui.theme.SuccessDark
@@ -120,11 +122,11 @@ fun SelectionErrorDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Notice") },
+        title = { Text(stringResource(R.string.dialog_notice_title)) },
         text = { Text(error ?: "") },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("OK")
+                Text(stringResource(R.string.dialog_ok))
             }
         }
     )
@@ -139,14 +141,14 @@ fun SelectionHeader(onNavigateBack: () -> Unit) {
         IconButton(onClick = onNavigateBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.content_desc_back),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
         Text(
-            text = "Select Quiz Options",
+            text = stringResource(R.string.selection_title),
             style = MaterialTheme.typography.headlineLarge
         )
     }
@@ -160,7 +162,7 @@ fun CategorySelection(
     onCategorySelected: (String) -> Unit
 ) {
     SelectionCard(
-        title = "Choose a Category",
+        title = stringResource(R.string.selection_choose_category),
         delayMs = 0
     ) {
         FlowRow(
@@ -193,7 +195,7 @@ fun DifficultySelection(
     onDifficultySelected: (Difficulty) -> Unit
 ) {
     SelectionCard(
-        title = "Choose Difficulty",
+        title = stringResource(R.string.selection_choose_difficulty),
         delayMs = 200
     ) {
         FlowRow(
@@ -246,15 +248,21 @@ fun SelectionInfoPanel(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "You selected $selectedCategory with ${selectedDifficulty?.name?.lowercase()?.replaceFirstChar { it.uppercase() }} difficulty",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+                if (selectedCategory != null && selectedDifficulty != null) {
+                    Text(
+                        text = stringResource(
+                            R.string.selection_info_selected,
+                            selectedCategory,
+                            selectedDifficulty.name.lowercase().replaceFirstChar { it.uppercase() }
+                        ),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "$availableQuestionsCount question(s) available • Complete all to save your score",
+                    text = stringResource(R.string.selection_info_available, availableQuestionsCount),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -298,7 +306,7 @@ fun StartQuizButton(
             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
         } else {
             Text(
-                text = "Start Quiz",
+                text = stringResource(R.string.selection_start_quiz),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
             )

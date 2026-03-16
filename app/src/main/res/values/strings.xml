@@ -1,3 +1,67 @@
 <resources>
     <string name="app_name">Quiz</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_toggle_theme">Toggle Theme</string>
+    <string name="content_desc_toggle_contrast">Toggle Contrast</string>
+    <string name="content_desc_quiz_logo">Quiz Logo</string>
+    <string name="content_desc_back">Back</string>
+    <string name="content_desc_trophy">Trophy</string>
+
+    <!-- Home Screen -->
+    <string name="home_title_quiz_master">Quiz Master</string>
+    <string name="home_subtitle">Test your knowledge across multiple categories</string>
+    <string name="home_start_quiz">Start Quiz</string>
+    <string name="home_start_quiz_desc">Choose a category and difficulty level</string>
+    <string name="home_scoreboard">Scoreboard</string>
+    <string name="home_scoreboard_desc">View your quiz history and scores</string>
+    <string name="home_footer">Answer all questions to save your score</string>
+
+    <!-- Selection Screen -->
+    <string name="dialog_notice_title">Notice</string>
+    <string name="dialog_ok">OK</string>
+    <string name="selection_title">Select Quiz Options</string>
+    <string name="selection_choose_category">Choose a Category</string>
+    <string name="selection_choose_difficulty">Choose Difficulty</string>
+    <string name="selection_info_selected">You selected %1$s with %2$s difficulty</string>
+    <string name="selection_info_available">%1$d question(s) available • Complete all to save your score</string>
+    <string name="selection_start_quiz">Start Quiz</string>
+
+    <!-- Quiz Screen -->
+    <string name="dialog_exit_title">Exit quiz?</string>
+    <string name="dialog_exit_message">Your progress won\'t be saved.</string>
+    <string name="dialog_exit_confirm">Exit</string>
+    <string name="dialog_exit_resume">Resume</string>
+    <string name="quiz_error_no_questions">No questions available</string>
+    <string name="quiz_question_count">Question %1$d of %2$d</string>
+    <string name="quiz_score_label">Score</string>
+    <string name="quiz_feedback_correct">Correct! +1 Point</string>
+    <string name="quiz_feedback_incorrect">Incorrect!</string>
+    <string name="quiz_show_correct_answer">Show Correct Answer</string>
+    <string name="quiz_correct_answer_is">Correct answer: %1$s</string>
+    <string name="quiz_view_results">View Results</string>
+    <string name="quiz_next_question">Next Question</string>
+
+    <!-- Result Screen -->
+    <string name="result_msg_perfect">Perfect Score! 🎉</string>
+    <string name="result_msg_excellent">Excellent! 🌟</string>
+    <string name="result_msg_good">Good Job! 👍</string>
+    <string name="result_msg_not_bad">Not Bad! 💪</string>
+    <string name="result_msg_keep_practicing">Keep Practicing! 📚</string>
+    <string name="result_score_fraction">%1$d/%2$d</string>
+    <string name="result_percent_correct">%1$d%% Correct</string>
+    <string name="result_info_category">Category: %1$s</string>
+    <string name="result_info_difficulty">Difficulty: %1$s</string>
+    <string name="result_btn_try_another">Try Another Quiz</string>
+    <string name="result_btn_view_scoreboard">View Scoreboard</string>
+    <string name="result_btn_back_home">Back to Home</string>
+
+    <!-- Scoreboard Screen -->
+    <string name="scoreboard_title">Scoreboard</string>
+    <string name="scoreboard_stats_quizzes">Quizzes</string>
+    <string name="scoreboard_stats_average">Average</string>
+    <string name="scoreboard_stats_best">Best</string>
+    <string name="scoreboard_empty_title">No scores yet</string>
+    <string name="scoreboard_empty_subtitle">Complete a quiz to see your scores here</string>
+
 </resources>

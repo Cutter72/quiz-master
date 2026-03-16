@@ -45,10 +45,12 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import pl.pdgroup.quiz.R
 
 @Composable
 fun HomeScreen(
@@ -106,7 +108,7 @@ fun HomeHeaderControls(
         IconButton(onClick = onToggleTheme) {
             Icon(
                 imageVector = if (isDarkMode) Icons.Outlined.LightMode else Icons.Outlined.DarkMode,
-                contentDescription = "Toggle Theme",
+                contentDescription = stringResource(R.string.content_desc_toggle_theme),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
             )
@@ -115,7 +117,7 @@ fun HomeHeaderControls(
         IconButton(onClick = onToggleContrast) {
             Icon(
                 imageVector = Icons.Outlined.Contrast,
-                contentDescription = "Toggle Contrast",
+                contentDescription = stringResource(R.string.content_desc_toggle_contrast),
                 tint = if (isHighContrast) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(32.dp)
             )
@@ -138,7 +140,7 @@ fun HomeHeroSection() {
 
     Icon(
         imageVector = Icons.AutoMirrored.Filled.List,
-        contentDescription = "Quiz Logo",
+        contentDescription = stringResource(R.string.content_desc_quiz_logo),
         tint = MaterialTheme.colorScheme.primary,
         modifier = Modifier
             .size(120.dp)
@@ -148,7 +150,7 @@ fun HomeHeroSection() {
     Spacer(modifier = Modifier.height(16.dp))
 
     Text(
-        text = "Quiz Master",
+        text = stringResource(R.string.home_title_quiz_master),
         style = MaterialTheme.typography.displayMedium,
         textAlign = TextAlign.Center
     )
@@ -156,7 +158,7 @@ fun HomeHeroSection() {
     Spacer(modifier = Modifier.height(8.dp))
 
     Text(
-        text = "Test your knowledge across multiple categories",
+        text = stringResource(R.string.home_subtitle),
         style = MaterialTheme.typography.headlineSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center
@@ -169,8 +171,8 @@ fun HomeActionCards(
     onNavigateToScoreboard: () -> Unit
 ) {
     ActionCard(
-        title = "Start Quiz",
-        description = "Choose a category and difficulty level",
+        title = stringResource(R.string.home_start_quiz),
+        description = stringResource(R.string.home_start_quiz_desc),
         icon = Icons.AutoMirrored.Filled.List,
         iconBgColor = MaterialTheme.colorScheme.primary,
         delayMs = 200,
@@ -180,8 +182,8 @@ fun HomeActionCards(
     Spacer(modifier = Modifier.height(24.dp))
 
     ActionCard(
-        title = "Scoreboard",
-        description = "View your quiz history and scores",
+        title = stringResource(R.string.home_scoreboard),
+        description = stringResource(R.string.home_scoreboard_desc),
         icon = Icons.Default.Leaderboard,
         iconBgColor = MaterialTheme.colorScheme.secondary,
         delayMs = 400,
@@ -198,7 +200,7 @@ fun HomeFooterInfo() {
     }
 
     Text(
-        text = "Answer all questions to save your score",
+        text = stringResource(R.string.home_footer),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,

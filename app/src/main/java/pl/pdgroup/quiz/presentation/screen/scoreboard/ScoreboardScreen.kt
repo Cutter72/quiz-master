@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import pl.pdgroup.quiz.R
 import pl.pdgroup.quiz.domain.model.Difficulty
 import pl.pdgroup.quiz.domain.model.QuizScore
 import pl.pdgroup.quiz.ui.theme.ErrorDark
@@ -89,7 +91,7 @@ fun ScoreboardHeader(onNavigateBack: () -> Unit) {
         IconButton(onClick = onNavigateBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.content_desc_back),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
             )
@@ -103,7 +105,7 @@ fun ScoreboardHeader(onNavigateBack: () -> Unit) {
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "Scoreboard",
+            text = stringResource(R.string.scoreboard_title),
             style = MaterialTheme.typography.headlineMedium
         )
     }
@@ -142,19 +144,19 @@ fun ScoreboardStatsOverview(
         StatCard(
             modifier = Modifier.weight(1f),
             value = "$totalQuizzes",
-            label = "Quizzes",
+            label = stringResource(R.string.scoreboard_stats_quizzes),
             color = MaterialTheme.colorScheme.primary
         )
         StatCard(
             modifier = Modifier.weight(1f),
             value = String.format(Locale.getDefault(), "%.1f%%", averageScore),
-            label = "Average",
+            label = stringResource(R.string.scoreboard_stats_average),
             color = if (isDark) SuccessDark else SuccessLight
         )
         StatCard(
             modifier = Modifier.weight(1f),
             value = "$bestScore%",
-            label = "Best",
+            label = stringResource(R.string.scoreboard_stats_best),
             color = MaterialTheme.colorScheme.secondary
         )
     }
@@ -287,13 +289,13 @@ fun EmptyState() {
                     .padding(bottom = 16.dp)
             )
             Text(
-                text = "No scores yet",
+                text = stringResource(R.string.scoreboard_empty_title),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = "Complete a quiz to see your scores here",
+                text = stringResource(R.string.scoreboard_empty_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp),

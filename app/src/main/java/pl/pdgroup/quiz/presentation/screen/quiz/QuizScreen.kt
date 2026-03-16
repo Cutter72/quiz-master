@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import pl.pdgroup.quiz.R
 import pl.pdgroup.quiz.domain.model.Difficulty
 import pl.pdgroup.quiz.ui.theme.ErrorDark
 import pl.pdgroup.quiz.ui.theme.ErrorLight
@@ -133,19 +135,19 @@ fun QuizScreen(
 fun ExitQuizDialog(onDismiss: () -> Unit, onExit: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Exit quiz?") },
-        text = { Text("Your progress won't be saved.") },
+        title = { Text(stringResource(R.string.dialog_exit_title)) },
+        text = { Text(stringResource(R.string.dialog_exit_message)) },
         confirmButton = {
             TextButton(onClick = {
                 onDismiss()
                 onExit()
             }) {
-                Text("Exit", color = MaterialTheme.colorScheme.error)
+                Text(stringResource(R.string.dialog_exit_confirm), color = MaterialTheme.colorScheme.error)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Resume")
+                Text(stringResource(R.string.dialog_exit_resume))
             }
         }
     )
@@ -161,7 +163,7 @@ fun QuizLoadingState() {
 @Composable
 fun QuizErrorState(error: String?) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(error ?: "No questions available")
+        Text(error ?: stringResource(R.string.quiz_error_no_questions))
     }
 }
 
@@ -179,14 +181,14 @@ fun QuizHeader(
         IconButton(onClick = onExitClick) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.content_desc_back),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
         Text(
-            text = "Question ${currentQuestionIndex + 1} of $totalQuestions",
+            text = stringResource(R.string.quiz_question_count, currentQuestionIndex + 1, totalQuestions),
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.weight(1f)
         )
@@ -198,7 +200,7 @@ fun QuizHeader(
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Score",
+                text = stringResource(R.string.quiz_score_label),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -325,7 +327,7 @@ fun QuizResultFeedback(state: QuizContract.State, isDark: Boolean, viewModel: Qu
                     Icon(imageVector = icon, contentDescription = null, tint = strokeColor, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (isCorrect) "Correct! +1 Point" else "Incorrect!",
+                        text = if (isCorrect) stringResource(R.string.quiz_feedback_correct) else stringResource(R.string.quiz_feedback_incorrect),
                         style = MaterialTheme.typography.titleMedium,
                         color = strokeColor,
                         fontWeight = FontWeight.SemiBold
@@ -339,11 +341,11 @@ fun QuizResultFeedback(state: QuizContract.State, isDark: Boolean, viewModel: Qu
                             onClick = { viewModel.handleIntent(QuizContract.Intent.ShowCorrectAnswer) },
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = strokeColor)
                         ) {
-                            Text("Show Correct Answer")
+                            Text(stringResource(R.string.quiz_show_correct_answer))
                         }
                     } else {
                         Text(
-                            text = "Correct answer: ${state.currentQuestion?.correctAnswer}",
+                            text = stringResource(R.string.quiz_correct_answer_is, state.currentQuestion?.correctAnswer ?: ""),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -371,7 +373,7 @@ fun QuizActionButtons(state: QuizContract.State, viewModel: QuizViewModel) {
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text(
-                text = if (state.isLastQuestion) "View Results" else "Next Question",
+                text = if (state.isLastQuestion) stringResource(R.string.quiz_view_results) else stringResource(R.string.quiz_next_question),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
             )

@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import pl.pdgroup.quiz.R
 import pl.pdgroup.quiz.domain.model.Difficulty
 import pl.pdgroup.quiz.ui.theme.ErrorDark
 import pl.pdgroup.quiz.ui.theme.ErrorLight
@@ -67,11 +69,11 @@ fun ResultScreen(
     }
 
     val message = when {
-        state.percentage == 100 -> "Perfect Score! 🎉"
-        state.percentage >= 80 -> "Excellent! 🌟"
-        state.percentage >= 60 -> "Good Job! 👍"
-        state.percentage >= 40 -> "Not Bad! 💪"
-        else -> "Keep Practicing! 📚"
+        state.percentage == 100 -> stringResource(R.string.result_msg_perfect)
+        state.percentage >= 80 -> stringResource(R.string.result_msg_excellent)
+        state.percentage >= 60 -> stringResource(R.string.result_msg_good)
+        state.percentage >= 40 -> stringResource(R.string.result_msg_not_bad)
+        else -> stringResource(R.string.result_msg_keep_practicing)
     }
 
     if (state.percentage == 100) {
@@ -134,7 +136,7 @@ fun ResultTrophy(themeColor: Color) {
 
     Icon(
         imageVector = Icons.Default.EmojiEvents,
-        contentDescription = "Trophy",
+        contentDescription = stringResource(R.string.content_desc_trophy),
         tint = themeColor,
         modifier = Modifier
             .size(120.dp)
@@ -186,7 +188,7 @@ fun ResultDetailsCard(
             )
 
             Text(
-                text = "$score/$totalQuestions",
+                text = stringResource(R.string.result_score_fraction, score, totalQuestions),
                 style = MaterialTheme.typography.displayLarge,
                 color = themeColor,
                 fontWeight = FontWeight.SemiBold,
@@ -194,7 +196,7 @@ fun ResultDetailsCard(
             )
 
             Text(
-                text = "$percentage% Correct",
+                text = stringResource(R.string.result_percent_correct, percentage),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 32.dp)
@@ -240,13 +242,13 @@ fun ResultInfoPanel(category: String, difficulty: Difficulty) {
     ) {
         Column {
             Text(
-                text = "Category: $category",
+                text = stringResource(R.string.result_info_category, category),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Difficulty: ${difficulty.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                text = stringResource(R.string.result_info_difficulty, difficulty.name.lowercase().replaceFirstChar { it.uppercase() }),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -261,7 +263,7 @@ fun ResultActionButtons(
     onBackToHome: () -> Unit
 ) {
     AnimatedButton(
-        text = "Try Another Quiz",
+        text = stringResource(R.string.result_btn_try_another),
         icon = Icons.Default.Refresh,
         delayMs = 400,
         isOutlined = false,
@@ -272,7 +274,7 @@ fun ResultActionButtons(
     Spacer(modifier = Modifier.height(16.dp))
 
     AnimatedButton(
-        text = "View Scoreboard",
+        text = stringResource(R.string.result_btn_view_scoreboard),
         icon = Icons.Default.Leaderboard,
         delayMs = 500,
         isOutlined = true,
@@ -283,7 +285,7 @@ fun ResultActionButtons(
     Spacer(modifier = Modifier.height(16.dp))
 
     AnimatedButton(
-        text = "Back to Home",
+        text = stringResource(R.string.result_btn_back_home),
         icon = Icons.Default.Home,
         delayMs = 600,
         isOutlined = false,
