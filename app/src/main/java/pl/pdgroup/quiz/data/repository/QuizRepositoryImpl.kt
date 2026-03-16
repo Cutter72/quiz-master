@@ -1,12 +1,13 @@
 package pl.pdgroup.quiz.data.repository
 
-import android.text.Html
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import pl.pdgroup.quiz.data.local.ScoreDao
 import pl.pdgroup.quiz.data.local.ScoreEntity
+import pl.pdgroup.quiz.data.mapper.CategoryMapper
+import pl.pdgroup.quiz.data.mapper.toDomain
 import pl.pdgroup.quiz.data.remote.api.OpenTdbApi
 import pl.pdgroup.quiz.domain.model.Difficulty
 import pl.pdgroup.quiz.domain.model.Question
@@ -28,7 +29,7 @@ class QuizRepositoryImpl(
                 return@withContext cachedQuestions!!
             }
 
-            val categoryId = getCategoryId(category)
+            val categoryId = CategoryMapper.getCategoryId(category)
             val diffString = difficulty.name.lowercase()
             val response = openTdbApi.getQuestions(
                 amount = 7,
@@ -37,14 +38,7 @@ class QuizRepositoryImpl(
             )
             
             val questions = response.results.map { dto ->
-                Question(
-                    type = dto.type,
-                    difficulty = try { Difficulty.valueOf(dto.difficulty.uppercase()) } catch (e: Exception) { Difficulty.EASY },
-                    category = dto.category,
-                    question = decodeHtmlEntities(dto.question),
-                    correctAnswer = decodeHtmlEntities(dto.correctAnswer),
-                    incorrectAnswers = dto.incorrectAnswers.map { decodeHtmlEntities(it) }
-                )
+                dto.toDomain()
             }
             
             lastCategory = category
@@ -81,21 +75,5 @@ class QuizRepositoryImpl(
                 )
             )
         }
-    }
-
-    private fun getCategoryId(categoryName: String): Int {
-        return when (categoryName) {
-            "Sports" -> 21
-            "Science & Nature" -> 17
-            "Animals" -> 27
-            "Geography" -> 22
-            "History" -> 23
-            "General Knowledge" -> 9
-            else -> 9
-        }
-    }
-
-    private fun decodeHtmlEntities(text: String): String {
-        return Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY).toString()
     }
 }
