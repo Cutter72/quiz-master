@@ -31,6 +31,8 @@ android {
         }
     }
     compileOptions {
+        // Enables Java 8+ API desugaring (like java.time.*) for older Android versions (API < 26)
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
@@ -43,6 +45,9 @@ android {
 }
 
 dependencies {
+    // Provides the backported implementations for modern Java APIs (java.time.Instant) on older devices
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
