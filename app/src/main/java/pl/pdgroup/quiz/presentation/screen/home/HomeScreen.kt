@@ -1,6 +1,5 @@
 package pl.pdgroup.quiz.presentation.screen.home
 
-import android.content.res.Configuration
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -33,7 +32,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,12 +47,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import pl.pdgroup.quiz.R
-import pl.pdgroup.quiz.ui.theme.QuizTheme
 
 @Composable
 fun HomeScreen(
@@ -179,7 +175,7 @@ fun HomeActionCards(
         description = stringResource(R.string.home_start_quiz_desc),
         icon = Icons.AutoMirrored.Filled.List,
         iconBgColor = MaterialTheme.colorScheme.primary,
-        delayMs = 200,
+        delayMs = 150,
         onClick = onNavigateToSelection
     )
 
@@ -190,7 +186,7 @@ fun HomeActionCards(
         description = stringResource(R.string.home_scoreboard_desc),
         icon = Icons.Default.Leaderboard,
         iconBgColor = MaterialTheme.colorScheme.secondary,
-        delayMs = 400,
+        delayMs = 300,
         onClick = onNavigateToScoreboard
     )
 }
@@ -200,7 +196,7 @@ fun HomeFooterInfo() {
     val footerAlpha = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         delay(600)
-        footerAlpha.animateTo(1f, tween(500))
+        footerAlpha.animateTo(1f, tween(400))
     }
 
     Text(
@@ -284,24 +280,6 @@ fun ActionCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
-    }
-}
-
-@Preview(name = "Light Mode", showBackground = true)
-@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    QuizTheme {
-        Surface {
-            HomeScreen(
-                isDarkMode = false,
-                isHighContrast = false,
-                onToggleTheme = {},
-                onToggleContrast = {},
-                onNavigateToSelection = {},
-                onNavigateToScoreboard = {}
-            )
         }
     }
 }

@@ -277,7 +277,7 @@ fun ScoreboardContent(state: ScoreboardContract.State) {
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
                 itemsIndexed(state.filteredScores) { index, score ->
-                    ScoreCard(score = score, delayMs = index * 50L)
+                    ScoreCard(score = score, delayMs = index * 20L)
                 }
             }
         }
@@ -330,8 +330,8 @@ fun ScoreCard(score: QuizScore, delayMs: Long) {
 
     LaunchedEffect(Unit) {
         delay(delayMs)
-        launch { alphaAnim.animateTo(1f, tween(300)) }
-        launch { offsetXAnim.animateTo(0f, tween(300)) }
+        launch { alphaAnim.animateTo(1f, tween(100)) }
+        launch { offsetXAnim.animateTo(0f, tween(100)) }
     }
 
     val isDark = MaterialTheme.colorScheme.background.red < 0.5f

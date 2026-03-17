@@ -11,10 +11,10 @@ class GetQuestionsUseCase @Inject constructor(
     suspend operator fun invoke(category: String, difficulty: Difficulty, forceRefresh: Boolean = false): Result<List<Question>> {
         return try {
             val questions = repository.getQuestions(category, difficulty, forceRefresh)
-            if (questions.size < 3) {
+            if (questions.size < 7) {
                 Result.failure(Exception("Not enough questions available for $category - ${difficulty.name}. Only ${questions.size} question(s) found. Please try another combination."))
             } else {
-                Result.success(questions.shuffled().take(5))
+                Result.success(questions.shuffled().take(7))
             }
         } catch (e: Exception) {
             Result.failure(e)

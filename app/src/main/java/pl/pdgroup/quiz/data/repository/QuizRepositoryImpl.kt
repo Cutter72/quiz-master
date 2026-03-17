@@ -32,7 +32,7 @@ class QuizRepositoryImpl(
             val categoryId = CategoryMapper.getCategoryId(category)
             val diffString = difficulty.name.lowercase()
             val response = openTdbApi.getQuestions(
-                amount = 7,
+                amount = 50,
                 category = categoryId,
                 difficulty = diffString
             )
