@@ -1,5 +1,6 @@
 package pl.pdgroup.quiz.presentation.screen.quiz
 
+import android.content.res.Configuration
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
@@ -25,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -33,12 +35,13 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import pl.pdgroup.quiz.R
 import pl.pdgroup.quiz.domain.model.Difficulty
+import pl.pdgroup.quiz.domain.model.Question
 import pl.pdgroup.quiz.ui.theme.ErrorDark
 import pl.pdgroup.quiz.ui.theme.ErrorLight
 import pl.pdgroup.quiz.ui.theme.SuccessDark
 import pl.pdgroup.quiz.ui.theme.SuccessLight
+import pl.pdgroup.quiz.ui.theme.QuizTheme
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun QuizScreen(
     onNavigateBack: () -> Unit,
@@ -46,9 +49,6 @@ fun QuizScreen(
     viewModel: QuizViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val isDark = MaterialTheme.colorScheme.background.red < 0.5f
-
-    var showExitDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel.effect) {
         viewModel.effect.collectLatest { effect ->
@@ -62,6 +62,22 @@ fun QuizScreen(
             }
         }
     }
+
+    QuizScreenContent(
+        state = state,
+        onNavigateBack = onNavigateBack,
+        onIntent = { viewModel.handleIntent(it) }
+    )
+}
+
+@Composable
+fun QuizScreenContent(
+    state: QuizContract.State,
+    onNavigateBack: () -> Unit,
+    onIntent: (QuizContract.Intent) -> Unit
+) {
+    val isDark = MaterialTheme.colorScheme.background.red < 0.5f
+    var showExitDialog by remember { mutableStateOf(false) }
 
     if (showExitDialog) {
         ExitQuizDialog(
@@ -114,18 +130,18 @@ fun QuizScreen(
 
             QuizQuestionContent(
                 state = state,
-                viewModel = viewModel
+                onIntent = onIntent
             )
 
             QuizResultFeedback(
                 state = state,
                 isDark = isDark,
-                viewModel = viewModel
+                onIntent = onIntent
             )
 
             QuizActionButtons(
                 state = state,
-                viewModel = viewModel
+                onIntent = onIntent
             )
         }
     }
@@ -251,7 +267,7 @@ fun QuizProgressBar(currentQuestionIndex: Int, totalQuestions: Int) {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun QuizQuestionContent(state: QuizContract.State, viewModel: QuizViewModel) {
+fun QuizQuestionContent(state: QuizContract.State, onIntent: (QuizContract.Intent) -> Unit) {
     AnimatedContent(
         targetState = state.currentQuestionIndex,
         transitionSpec = {
@@ -293,7 +309,7 @@ fun QuizQuestionContent(state: QuizContract.State, viewModel: QuizViewModel) {
                     isLocked = state.isAnswerLocked,
                     isCorrect = answer == question.correctAnswer,
                     delayMs = ansIndex * 100L,
-                    onClick = { viewModel.handleIntent(QuizContract.Intent.SelectAnswer(answer)) }
+                    onClick = { onIntent(QuizContract.Intent.SelectAnswer(answer)) }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -302,7 +318,7 @@ fun QuizQuestionContent(state: QuizContract.State, viewModel: QuizViewModel) {
 }
 
 @Composable
-fun QuizResultFeedback(state: QuizContract.State, isDark: Boolean, viewModel: QuizViewModel) {
+fun QuizResultFeedback(state: QuizContract.State, isDark: Boolean, onIntent: (QuizContract.Intent) -> Unit) {
     AnimatedVisibility(
         visible = state.isAnswerLocked,
         enter = scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn() + slideInVertically(initialOffsetY = { 50 })
@@ -338,7 +354,7 @@ fun QuizResultFeedback(state: QuizContract.State, isDark: Boolean, viewModel: Qu
                     Spacer(modifier = Modifier.height(8.dp))
                     if (!state.showCorrectAnswer) {
                         OutlinedButton(
-                            onClick = { viewModel.handleIntent(QuizContract.Intent.ShowCorrectAnswer) },
+                            onClick = { onIntent(QuizContract.Intent.ShowCorrectAnswer) },
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = strokeColor)
                         ) {
                             Text(stringResource(R.string.quiz_show_correct_answer))
@@ -358,13 +374,13 @@ fun QuizResultFeedback(state: QuizContract.State, isDark: Boolean, viewModel: Qu
 }
 
 @Composable
-fun QuizActionButtons(state: QuizContract.State, viewModel: QuizViewModel) {
+fun QuizActionButtons(state: QuizContract.State, onIntent: (QuizContract.Intent) -> Unit) {
     AnimatedVisibility(
         visible = state.isAnswerLocked,
         enter = fadeIn(tween(300)) + slideInVertically(initialOffsetY = { 50 }, animationSpec = tween(300))
     ) {
         Button(
-            onClick = { viewModel.handleIntent(QuizContract.Intent.NextQuestion) },
+            onClick = { onIntent(QuizContract.Intent.NextQuestion) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
@@ -461,6 +477,40 @@ fun AnswerOption(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Preview(name = "Light Mode", showBackground = true)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Composable
+fun QuizScreenPreview() {
+    QuizTheme {
+        Surface {
+            QuizScreenContent(
+                state = QuizContract.State(
+                    category = "Science",
+                    difficulty = Difficulty.MEDIUM,
+                    questions = listOf(
+                        Question(
+                            type = "multiple",
+                            difficulty = Difficulty.MEDIUM,
+                            category = "Science",
+                            question = "What is the powerhouse of the cell?",
+                            correctAnswer = "Mitochondria",
+                            incorrectAnswers = listOf("Nucleus", "Ribosome", "Endoplasmic Reticulum")
+                        )
+                    ),
+                    currentQuestionIndex = 0,
+                    score = 0,
+                    selectedAnswer = "Mitochondria",
+                    isAnswerLocked = true,
+                    isLoading = false,
+                    shuffledAnswers = listOf("Nucleus", "Ribosome", "Mitochondria", "Endoplasmic Reticulum")
+                ),
+                onNavigateBack = {},
+                onIntent = {}
             )
         }
     }

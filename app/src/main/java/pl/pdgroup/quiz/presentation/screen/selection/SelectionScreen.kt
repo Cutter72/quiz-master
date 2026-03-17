@@ -1,5 +1,6 @@
 package pl.pdgroup.quiz.presentation.screen.selection
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -27,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,6 +41,7 @@ import pl.pdgroup.quiz.ui.theme.SuccessLight
 import pl.pdgroup.quiz.ui.theme.SuccessDark
 import pl.pdgroup.quiz.ui.theme.ErrorLight
 import pl.pdgroup.quiz.ui.theme.ErrorDark
+import pl.pdgroup.quiz.ui.theme.QuizTheme
 
 @Composable
 fun SelectionScreen(
@@ -61,10 +64,23 @@ fun SelectionScreen(
         }
     }
 
+    SelectionScreenContent(
+        state = state,
+        onNavigateBack = onNavigateBack,
+        onIntent = { viewModel.handleIntent(it) }
+    )
+}
+
+@Composable
+fun SelectionScreenContent(
+    state: SelectionContract.State,
+    onNavigateBack: () -> Unit,
+    onIntent: (SelectionContract.Intent) -> Unit
+) {
     if (state.error != null) {
         SelectionErrorDialog(
             error = state.error,
-            onDismiss = { viewModel.handleIntent(SelectionContract.Intent.ClearError) }
+            onDismiss = { onIntent(SelectionContract.Intent.ClearError) }
         )
     }
 
@@ -83,7 +99,7 @@ fun SelectionScreen(
             CategorySelection(
                 categories = state.categories,
                 selectedCategory = state.selectedCategory,
-                onCategorySelected = { viewModel.handleIntent(SelectionContract.Intent.SelectCategory(it)) }
+                onCategorySelected = { onIntent(SelectionContract.Intent.SelectCategory(it)) }
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -91,7 +107,7 @@ fun SelectionScreen(
             DifficultySelection(
                 difficulties = state.difficulties,
                 selectedDifficulty = state.selectedDifficulty,
-                onDifficultySelected = { viewModel.handleIntent(SelectionContract.Intent.SelectDifficulty(it)) }
+                onDifficultySelected = { onIntent(SelectionContract.Intent.SelectDifficulty(it)) }
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -107,9 +123,9 @@ fun SelectionScreen(
             StartQuizButton(
                 isStartEnabled = state.isStartEnabled,
                 isLoading = state.isLoading,
-                onStartClick = { viewModel.handleIntent(SelectionContract.Intent.StartQuiz) }
+                onStartClick = { onIntent(SelectionContract.Intent.StartQuiz) }
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
@@ -398,5 +414,26 @@ fun SelectableChip(
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
         )
+    }
+}
+
+@Preview(name = "Light Mode", showBackground = true)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Composable
+fun SelectionScreenPreview() {
+    QuizTheme {
+        Surface {
+            SelectionScreenContent(
+                state = SelectionContract.State(
+                    categories = listOf("Science", "History", "Geography"),
+                    difficulties = listOf(Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD),
+                    selectedCategory = "Science",
+                    selectedDifficulty = Difficulty.MEDIUM,
+                    availableQuestionsCount = 50
+                ),
+                onNavigateBack = {},
+                onIntent = {}
+            )
+        }
     }
 }

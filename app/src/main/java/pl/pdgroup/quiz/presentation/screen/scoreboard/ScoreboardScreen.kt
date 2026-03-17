@@ -1,5 +1,6 @@
 package pl.pdgroup.quiz.presentation.screen.scoreboard
 
+import android.content.res.Configuration
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,6 +38,7 @@ import pl.pdgroup.quiz.ui.theme.ErrorDark
 import pl.pdgroup.quiz.ui.theme.ErrorLight
 import pl.pdgroup.quiz.ui.theme.SuccessDark
 import pl.pdgroup.quiz.ui.theme.SuccessLight
+import pl.pdgroup.quiz.ui.theme.QuizTheme
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -45,6 +48,20 @@ fun ScoreboardScreen(
     viewModel: ScoreboardViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    ScoreboardScreenContent(
+        state = state,
+        onNavigateBack = onNavigateBack,
+        onIntent = { viewModel.handleIntent(it) }
+    )
+}
+
+@Composable
+fun ScoreboardScreenContent(
+    state: ScoreboardContract.State,
+    onNavigateBack: () -> Unit,
+    onIntent: (ScoreboardContract.Intent) -> Unit
+) {
     val isDark = MaterialTheme.colorScheme.background.red < 0.5f
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
@@ -71,7 +88,7 @@ fun ScoreboardScreen(
                 ScoreboardCategoryTabs(
                     categories = state.categories,
                     selectedCategory = state.selectedCategory,
-                    onCategorySelected = { viewModel.handleIntent(ScoreboardContract.Intent.SelectCategory(it)) }
+                    onCategorySelected = { onIntent(ScoreboardContract.Intent.SelectCategory(it)) }
                 )
 
                 ScoreboardContent(state = state)
@@ -430,5 +447,35 @@ fun formatDate(isoString: String): String {
         formatter.format(date)
     } catch (e: Exception) {
         isoString
+    }
+}
+
+@Preview(name = "Light Mode", showBackground = true)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Composable
+fun ScoreboardScreenPreview() {
+    QuizTheme {
+        Surface {
+            ScoreboardScreenContent(
+                state = ScoreboardContract.State(
+                    allScores = listOf(
+                        QuizScore("Science", Difficulty.HARD, 4, 5, "2023-10-27T10:00:00.000Z"),
+                        QuizScore("Sports", Difficulty.EASY, 5, 5, "2023-10-26T15:30:00.000Z")
+                    ),
+                    filteredScores = listOf(
+                        QuizScore("Science", Difficulty.HARD, 4, 5, "2023-10-27T10:00:00.000Z"),
+                        QuizScore("Sports", Difficulty.EASY, 5, 5, "2023-10-26T15:30:00.000Z")
+                    ),
+                    categories = listOf("All", "Science", "Sports"),
+                    selectedCategory = "All",
+                    totalQuizzes = 2,
+                    averageScore = 90.0,
+                    bestScore = 100,
+                    isLoading = false
+                ),
+                onNavigateBack = {},
+                onIntent = {}
+            )
+        }
     }
 }

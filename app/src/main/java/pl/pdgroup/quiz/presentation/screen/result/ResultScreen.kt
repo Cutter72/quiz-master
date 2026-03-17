@@ -1,5 +1,6 @@
 package pl.pdgroup.quiz.presentation.screen.result
 
+import android.content.res.Configuration
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -27,6 +28,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,6 +41,7 @@ import pl.pdgroup.quiz.ui.theme.ErrorDark
 import pl.pdgroup.quiz.ui.theme.ErrorLight
 import pl.pdgroup.quiz.ui.theme.SuccessDark
 import pl.pdgroup.quiz.ui.theme.SuccessLight
+import pl.pdgroup.quiz.ui.theme.QuizTheme
 import kotlin.random.Random
 
 @Composable
@@ -49,7 +52,6 @@ fun ResultScreen(
     viewModel: ResultViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val isDark = MaterialTheme.colorScheme.background.red < 0.5f
 
     LaunchedEffect(viewModel.effect) {
         viewModel.effect.collectLatest { effect ->
@@ -60,6 +62,19 @@ fun ResultScreen(
             }
         }
     }
+
+    ResultScreenContent(
+        state = state,
+        onIntent = { viewModel.handleIntent(it) }
+    )
+}
+
+@Composable
+fun ResultScreenContent(
+    state: ResultContract.State,
+    onIntent: (ResultContract.Intent) -> Unit
+) {
+    val isDark = MaterialTheme.colorScheme.background.red < 0.5f
 
     val themeColor = when {
         state.percentage >= 80 -> if (isDark) SuccessDark else SuccessLight
@@ -103,9 +118,9 @@ fun ResultScreen(
             )
 
             ResultActionButtons(
-                onTryAnother = { viewModel.handleIntent(ResultContract.Intent.TryAnotherQuiz) },
-                onViewScoreboard = { viewModel.handleIntent(ResultContract.Intent.ViewScoreboard) },
-                onBackToHome = { viewModel.handleIntent(ResultContract.Intent.BackToHome) }
+                onTryAnother = { onIntent(ResultContract.Intent.TryAnotherQuiz) },
+                onViewScoreboard = { onIntent(ResultContract.Intent.ViewScoreboard) },
+                onBackToHome = { onIntent(ResultContract.Intent.BackToHome) }
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -407,3 +422,24 @@ data class ConfettiParticle(
         Color(0xFFFFD54F)
     ).random()
 )
+
+@Preview(name = "Light Mode", showBackground = true)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Composable
+fun ResultScreenPreview() {
+    QuizTheme {
+        Surface {
+            ResultScreenContent(
+                state = ResultContract.State(
+                    category = "History",
+                    difficulty = Difficulty.HARD,
+                    score = 4,
+                    totalQuestions = 5,
+                    percentage = 80,
+                    isSaved = true
+                ),
+                onIntent = {}
+            )
+        }
+    }
+}
