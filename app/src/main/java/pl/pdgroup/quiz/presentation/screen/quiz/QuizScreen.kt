@@ -1,6 +1,7 @@
 package pl.pdgroup.quiz.presentation.screen.quiz
 
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
@@ -79,6 +80,10 @@ fun QuizScreenContent(
     val isDark = MaterialTheme.colorScheme.background.red < 0.5f
     var showExitDialog by remember { mutableStateOf(false) }
 
+    BackHandler {
+        showExitDialog = true
+    }
+
     if (showExitDialog) {
         ExitQuizDialog(
             onDismiss = { showExitDialog = false },
@@ -133,6 +138,16 @@ fun QuizScreenContent(
                 onIntent = onIntent
             )
 
+            Spacer(modifier = Modifier.height(220.dp))
+        }
+
+        Column(
+            modifier = Modifier
+                .widthIn(max = 900.dp)
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
             QuizResultFeedback(
                 state = state,
                 isDark = isDark,
@@ -319,11 +334,22 @@ fun QuizQuestionContent(state: QuizContract.State, onIntent: (QuizContract.Inten
 
 @Composable
 fun QuizResultFeedback(state: QuizContract.State, isDark: Boolean, onIntent: (QuizContract.Intent) -> Unit) {
+    val retainedIsCorrect = remember { mutableStateOf(state.isCorrect) }
+    val retainedShowCorrectAnswer = remember { mutableStateOf(state.showCorrectAnswer) }
+    val retainedCorrectAnswer = remember { mutableStateOf(state.currentQuestion?.correctAnswer) }
+
+    if (state.isAnswerLocked) {
+        retainedIsCorrect.value = state.isCorrect
+        retainedShowCorrectAnswer.value = state.showCorrectAnswer
+        retainedCorrectAnswer.value = state.currentQuestion?.correctAnswer
+    }
+
     AnimatedVisibility(
         visible = state.isAnswerLocked,
-        enter = scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn() + slideInVertically(initialOffsetY = { 50 })
+        enter = scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn() + slideInVertically(initialOffsetY = { 50 }),
+        exit = fadeOut(tween(200)) + slideOutVertically(targetOffsetY = { 50 }, animationSpec = tween(200))
     ) {
-        val isCorrect = state.isCorrect == true
+        val isCorrect = retainedIsCorrect.value == true
         val bgColor = if (isCorrect) (if (isDark) SuccessDark else SuccessLight).copy(alpha = 0.2f)
                       else (if (isDark) ErrorDark else ErrorLight).copy(alpha = 0.2f)
         val strokeColor = if (isCorrect) (if (isDark) SuccessDark else SuccessLight)
@@ -334,38 +360,45 @@ fun QuizResultFeedback(state: QuizContract.State, isDark: Boolean, onIntent: (Qu
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
-            colors = CardDefaults.cardColors(containerColor = bgColor),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             border = BorderStroke(1.dp, strokeColor),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = icon, contentDescription = null, tint = strokeColor, modifier = Modifier.size(24.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (isCorrect) stringResource(R.string.quiz_feedback_correct) else stringResource(R.string.quiz_feedback_incorrect),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = strokeColor,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-                
-                if (!isCorrect) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    if (!state.showCorrectAnswer) {
-                        OutlinedButton(
-                            onClick = { onIntent(QuizContract.Intent.ShowCorrectAnswer) },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = strokeColor)
-                        ) {
-                            Text(stringResource(R.string.quiz_show_correct_answer))
-                        }
-                    } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(bgColor)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = icon, contentDescription = null, tint = strokeColor, modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = stringResource(R.string.quiz_correct_answer_is, state.currentQuestion?.correctAnswer ?: ""),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            text = if (isCorrect) stringResource(R.string.quiz_feedback_correct) else stringResource(R.string.quiz_feedback_incorrect),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = strokeColor,
+                            fontWeight = FontWeight.SemiBold
                         )
+                    }
+                    
+                    if (!isCorrect) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        if (!retainedShowCorrectAnswer.value) {
+                            OutlinedButton(
+                                onClick = { onIntent(QuizContract.Intent.ShowCorrectAnswer) },
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = strokeColor)
+                            ) {
+                                Text(stringResource(R.string.quiz_show_correct_answer))
+                            }
+                        } else {
+                            Text(
+                                text = stringResource(R.string.quiz_correct_answer_is, retainedCorrectAnswer.value ?: ""),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
             }
@@ -375,21 +408,29 @@ fun QuizResultFeedback(state: QuizContract.State, isDark: Boolean, onIntent: (Qu
 
 @Composable
 fun QuizActionButtons(state: QuizContract.State, onIntent: (QuizContract.Intent) -> Unit) {
+    val retainedIsLastQuestion = remember { mutableStateOf(state.isLastQuestion) }
+    
+    if (state.isAnswerLocked) {
+        retainedIsLastQuestion.value = state.isLastQuestion
+    }
+
     AnimatedVisibility(
         visible = state.isAnswerLocked,
-        enter = fadeIn(tween(300)) + slideInVertically(initialOffsetY = { 50 }, animationSpec = tween(300))
+        enter = fadeIn(tween(300)) + slideInVertically(initialOffsetY = { 50 }, animationSpec = tween(300)),
+        exit = fadeOut(tween(200)) + slideOutVertically(targetOffsetY = { 50 }, animationSpec = tween(200))
     ) {
         Button(
             onClick = { onIntent(QuizContract.Intent.NextQuestion) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
-                .padding(bottom = 32.dp),
+                .padding(bottom = 32.dp)
+                .height(64.dp),
             shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
         ) {
             Text(
-                text = if (state.isLastQuestion) stringResource(R.string.quiz_view_results) else stringResource(R.string.quiz_next_question),
+                text = if (retainedIsLastQuestion.value) stringResource(R.string.quiz_view_results) else stringResource(R.string.quiz_next_question),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
             )
