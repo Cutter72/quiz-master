@@ -412,7 +412,8 @@ fun SelectableChip(
             text = text,
             color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.bodyLarge,
-            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
+            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
+            textAlign = TextAlign.Center
         )
     }
 }
