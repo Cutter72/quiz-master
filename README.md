@@ -18,4 +18,9 @@ Android app for playing quizzes, based on the OpenTDB API. Built with a modern U
 
 ### Installation [APK]
 
-[APK]: https://github.com/Cutter72/quiz-master/tree/master/apk
+[APK]: https://github.com/Cutter72/quiz-master/releases/download/0.9.0/app-release-unsigned.apk
+
+### Screenshots
+
+![Screenshots 1](screenshots/1.jpg)
+![Screenshots 2](screenshots/2.jpg)
